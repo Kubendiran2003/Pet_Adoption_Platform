@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true);
-      const response = await api.post('/api/auth/login', { email, password });
+      const response = await api.post('/api/users/login', { email, password });
       setToken(response.data.token);
       toast.success('Logged in successfully!');
       return true;
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
-      const response = await api.post('/api/auth/register', userData);
+      const response = await api.post('/api/users/register', userData);
       setToken(response.data.token);
       toast.success('Account created successfully!');
       return true;

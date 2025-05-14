@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://pet-adoption-platform-m3t7.onrender.com';
+const API_URL = 'https://pet-adoption-platform-jr8e.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,
