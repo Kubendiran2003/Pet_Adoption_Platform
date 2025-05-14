@@ -20,6 +20,14 @@ connectDB();
 
 const app = express();
 
+// Use the frontend URL from .env
+const allowedOrigins = [process.env.FRONTEND_URL];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true, // Allow cookies if using JWT in cookies
+}));
+
 // Middleware
 app.use(express.json());
 app.use(cors());
