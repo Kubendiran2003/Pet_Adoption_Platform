@@ -33,6 +33,7 @@ const PetDetailsPage = () => {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewText, setReviewText] = useState('');
+  const [reviewTitle, setReviewTitle] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -91,42 +92,49 @@ const PetDetailsPage = () => {
   };
 
   const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    
-    if (!isAuthenticated) {
-      toast.error('Please log in to submit a review');
-      return;
-    }
-    
-    if (!reviewText.trim()) {
-      toast.error('Please enter review text');
-      return;
-    }
-    
-    try {
-      setSubmitLoading(true);
-      await submitReview({
-        entityId: id,
-        entityType: 'pet',
-        rating: reviewRating,
-        text: reviewText
-      });
-      
-      toast.success('Review submitted successfully!');
-      setReviewText('');
-      setReviewRating(5);
-      setShowReviewForm(false);
-      
-      // Refresh reviews
-      const reviewsData = await fetchReviews(id, 'pet');
-      setReviews(reviewsData);
-    } catch (error) {
-      toast.error('Failed to submit review');
-      console.error('Error submitting review:', error);
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
+  e.preventDefault();
+
+  if (!isAuthenticated) {
+    toast.error('Please log in to submit a review');
+    return;
+  }
+
+  if (!reviewText.trim() || !reviewTitle.trim()) {
+    toast.error('Please complete all fields');
+    return;
+  }
+
+  try {
+    setSubmitLoading(true);
+
+    const payload = {
+      type: 'pet',
+      pet: id,
+      rating: reviewRating,
+      title: reviewTitle,
+      content: reviewText
+    };
+
+    console.log('Submitting review:', payload);
+
+    await submitReview(payload);
+
+    toast.success('Review submitted successfully!');
+    setReviewText('');
+    setReviewTitle('');
+    setReviewRating(5);
+    setShowReviewForm(false);
+
+    const reviewsData = await fetchReviews(id, 'pet');
+    setReviews(reviewsData);
+  } catch (error) {
+    toast.error('Failed to submit review');
+    console.error('Error submitting review:', error.response?.data || error.message);
+  } finally {
+    setSubmitLoading(false);
+  }
+};
+
 
   const handleNextImage = () => {
     if (pet?.images?.length > 0) {
@@ -235,7 +243,9 @@ const PetDetailsPage = () => {
           <div className="flex items-center mt-2 text-gray-600">
             <span className="flex items-center mr-4">
               <MapPin size={16} className="mr-1" />
-              {pet.location}
+              {pet.location
+    ? `${pet.location.city}, ${pet.location.state}, ${pet.location.country}`
+    : 'Location not available'}
             </span>
             <span className="flex items-center">
               <Calendar size={16} className="mr-1" />
@@ -341,7 +351,7 @@ const PetDetailsPage = () => {
                 </div>
                 <div className="bg-gray-50 p-4 rounded-md">
                   <p className="text-sm text-gray-500">Adoption Fee</p>
-                  <p className="font-medium">${pet.adoptionFee || 'Varies'}</p>
+                  <p className="font-medium">{`$${pet.adoptionFee || 'Varies'}`}</p>
                 </div>
               </div>
               
@@ -430,6 +440,25 @@ const PetDetailsPage = () => {
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <form onSubmit={handleSubmitReview}>
                     <h3 className="text-lg font-medium text-gray-800 mb-3">Write a Review</h3>
+
+                    <div className="mb-4">
+          <label
+            htmlFor="reviewTitle"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Title
+          </label>
+          <input
+            type="text"
+            id="reviewTitle"
+            name="reviewTitle"
+            placeholder="Enter a short title for your review"
+            value={reviewTitle}
+            onChange={(e) => setReviewTitle(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
                     
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -500,8 +529,8 @@ const PetDetailsPage = () => {
                           {new Date(review.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="font-medium">{review.user?.name || 'Anonymous'}</p>
-                      <p className="text-gray-700 mt-2">{review.text}</p>
+                      <p className="font-medium">{review.title}</p>
+                      <p className="text-gray-700 mt-2">{review.content}</p>
                     </div>
                   ))}
                 </div>
@@ -525,7 +554,25 @@ const PetDetailsPage = () => {
                 </div>
                 <div className="ml-3">
                   <p className="font-medium">{pet.shelter?.name || 'Pet Shelter'}</p>
-                  <p className="text-sm text-gray-500">{pet.shelter?.location || pet.location}</p>
+                  <p className="text-sm text-gray-500">
+                    {pet.shelter?.location
+    ? [
+        pet.shelter.location.city,
+        pet.shelter.location.state,
+        pet.shelter.location.country,
+      ]
+        .filter(Boolean)
+        .join(', ')
+    : pet.location
+    ? [
+        pet.location.city,
+        pet.location.state,
+        pet.location.country,
+      ]
+        .filter(Boolean)
+        .join(', ')
+    : 'Location not available'}
+                  </p>
                 </div>
               </div>
               
@@ -553,8 +600,13 @@ const PetDetailsPage = () => {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm text-gray-700">
-                      This pet is currently located at {pet.shelter?.name || 'the shelter'} in {pet.location}. 
-                      Contact the shelter to schedule a visit.
+                      This pet is currently located at {pet.shelter?.name || 'the shelter'} in{' '}
+  {pet.location
+    ? [pet.location.city, pet.location.state, pet.location.country]
+        .filter(Boolean)
+        .join(', ')
+    : 'an unknown location'}
+  . Contact the shelter to schedule a visit.
                     </p>
                   </div>
                 </div>

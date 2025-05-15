@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
   const fetchCurrentUser = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/users/me');
+      const response = await api.get('/api/users/profile');
       setCurrentUser(response.data);
     } catch (error) {
       console.error('Error fetching current user:', error);
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
-      const response = await api.post('/api/users/register', userData);
+      const response = await api.post('/api/users', userData);
       setToken(response.data.token);
       toast.success('Account created successfully!');
       return true;
@@ -89,6 +89,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Additional methods that match your API
+  const fetchShelters = async () => {
+    try {
+      const response = await api.get('/api/users/shelters');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching shelters:', error);
+      throw error;
+    }
+  };
+
+  const fetchShelterById = async (id) => {
+    try {
+      const response = await api.get(`/api/users/shelters/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching shelter:', error);
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     loading,
@@ -96,8 +117,11 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
-    isAuthenticated: !!currentUser,
+    fetchShelters,
+    fetchShelterById,
+    isAuthenticated: !!token,
     isShelter: currentUser?.role === 'shelter',
+    isAdmin: currentUser?.role === 'admin',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

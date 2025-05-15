@@ -14,7 +14,7 @@ const LoginPage = () => {
   const location = useLocation();
   
   // Get the redirect path from location state or default to '/'
-  const redirectPath = location.state?.from || '/';
+  const redirectPath = location.state?.from || '/profile';
 
   const validateForm = () => {
     const newErrors = {};

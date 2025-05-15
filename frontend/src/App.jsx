@@ -8,14 +8,14 @@ import PetListingPage from './pages/PetListingPage';
 import PetDetailsPage from './pages/PetDetailsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-// import UserProfilePage from './pages/UserProfilePage';
+import UserProfilePage from './pages/UserProfilePage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import FavoritesPage from './pages/FavoritesPage';
-// import ShelterDashboardPage from './pages/ShelterDashboardPage';
+import ShelterDashboardPage from './pages/ShelterDashboardPage';
 import NotFoundPage from './pages/NotFoundPage';
-// import FosterProgramPage from './pages/FosterProgramPage';
-// import MessagesPage from './pages/MessagesPage';
-// import AboutPage from './pages/AboutPage';
+import FosterProgramPage from './pages/FosterProgramPage';
+import MessagesPage from './pages/MessagesPage';
+import AboutPage from './pages/AboutPage';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ScrollToTop from './components/common/ScrollToTop';
@@ -56,13 +56,13 @@ function App() {
               <Route path="/pets/:id" element={<PetDetailsPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              {/* <Route path="/about" element={<AboutPage />} /> */}
+              <Route path="/about" element={<AboutPage />} />
               
-              {/* <Route path="/profile" element={
+              <Route path="/profile" element={
                 <ProtectedRoute>
                   <UserProfilePage />
                 </ProtectedRoute>
-              } /> */}
+              } />
               
               <Route path="/applications" element={
                 <ProtectedRoute>
@@ -76,19 +76,19 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              {/* <Route path="/messages" element={
+              <Route path="/messages" element={
                 <ProtectedRoute>
                   <MessagesPage />
                 </ProtectedRoute>
-              } /> */}
+              } />
               
-              {/* <Route path="/shelter-dashboard" element={
+              <Route path="/shelter-dashboard" element={
                 <ProtectedRoute requireShelter={true}>
                   <ShelterDashboardPage />
                 </ProtectedRoute>
-              } /> */}
+              } />
               
-              {/* <Route path="/foster-program" element={<FosterProgramPage />} /> */}
+              <Route path="/foster-program" element={<FosterProgramPage />} />
               <Route path="/404" element={<NotFoundPage />} />
               <Route path="*" element={<Navigate replace to="/404" />} />
             </Routes>

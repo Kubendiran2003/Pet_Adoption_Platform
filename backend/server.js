@@ -24,8 +24,14 @@ const app = express();
 const allowedOrigins = [process.env.FRONTEND_URL];
 
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true, // Allow cookies if using JWT in cookies
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('CORS policy violation: Origin not allowed'), false);
+    }
+    return callback(null, origin);
+  },
+  credentials: true,
 }));
 
 // Middleware

@@ -132,9 +132,17 @@ export const fetchShelterApplications = async () => {
 // Reviews API
 export const fetchReviews = async (entityId, entityType) => {
   try {
-    const response = await api.get(`/api/reviews`, {
-      params: { entityId, entityType }
-    });
+    let url = '';
+
+    if (entityType === 'pet') {
+      url = `/api/reviews/pet/${entityId}`;
+    } else if (entityType === 'shelter') {
+      url = `/api/reviews/shelter/${entityId}`;
+    } else {
+      throw new Error('Invalid entity type');
+    }
+
+    const response = await api.get(url);
     return response.data;
   } catch (error) {
     console.error('Error fetching reviews:', error);
@@ -144,13 +152,15 @@ export const fetchReviews = async (entityId, entityType) => {
 
 export const submitReview = async (reviewData) => {
   try {
-    const response = await api.post('/api/reviews', reviewData);
-    return response.data;
-  } catch (error) {
-    console.error('Error submitting review:', error);
-    throw error;
+    const res = await api.post('/api/reviews', reviewData, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error('Error submitting review:', err);
+    throw err;
   }
 };
+
+
 
 // Messages API
 export const fetchConversations = async () => {

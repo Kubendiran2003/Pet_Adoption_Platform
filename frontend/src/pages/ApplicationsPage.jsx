@@ -152,7 +152,7 @@ const ApplicationsPage = () => {
                           Application for {application.pet?.name || 'Pet'}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          Submitted on {new Date(application.createdAt).toLocaleDateString()}
+                          Submitted on {application.createdAt ? new Date(application.createdAt).toLocaleDateString() : 'Unknown date'}
                         </p>
                       </div>
                     </div>
@@ -188,7 +188,7 @@ const ApplicationsPage = () => {
                                 {application.pet?.name || 'Pet'}
                               </h5>
                               <p className="text-sm text-gray-500">
-                                {application.pet?.breed || 'Unknown breed'}, {application.pet?.age || 'Unknown age'}
+                                {application.pet?.breed || 'Unknown breed'}, {application.pet?.age ? `${application.pet.age.value} ${application.pet.age.unit}` : 'Unknown age'}
                               </p>
                               <Link 
                                 to={`/pets/${application.pet?._id}`} 
