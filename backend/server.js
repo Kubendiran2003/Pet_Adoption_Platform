@@ -36,7 +36,6 @@ app.use(cors({
 
 // Middleware
 app.use(express.json());
-app.use(cors());
 
 // Set static folder
 app.use(express.static('public'));
