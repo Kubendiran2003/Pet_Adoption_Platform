@@ -1,24 +1,31 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-import HomePage from './pages/HomePage';
-import PetListingPage from './pages/PetListingPage';
-import PetDetailsPage from './pages/PetDetailsPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import UserProfilePage from './pages/UserProfilePage';
-import ApplicationsPage from './pages/ApplicationsPage';
-import FavoritesPage from './pages/FavoritesPage';
-import ShelterDashboardPage from './pages/ShelterDashboardPage';
-import NotFoundPage from './pages/NotFoundPage';
-import FosterProgramPage from './pages/FosterProgramPage';
-import MessagesPage from './pages/MessagesPage';
-import AboutPage from './pages/AboutPage';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import ScrollToTop from './components/common/ScrollToTop';
+import { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import HomePage from "./pages/HomePage";
+import PetListingPage from "./pages/PetListingPage";
+import PetDetailsPage from "./pages/PetDetailsPage";
+import AddPetPage from "./pages/AddPetPage";
+import EditPetPage from "./pages/EditPetPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import UserProfilePage from "./pages/UserProfilePage";
+import ApplicationsPage from "./pages/ApplicationsPage";
+import FavoritesPage from "./pages/FavoritesPage";
+import ShelterDashboardPage from "./pages/ShelterDashboardPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import FosterProgramPage from "./pages/FosterProgramPage";
+import MessagesPage from "./pages/MessagesPage";
+import AboutPage from "./pages/AboutPage";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ScrollToTop from "./components/common/ScrollToTop";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -57,37 +64,70 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/about" element={<AboutPage />} />
-              
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <UserProfilePage />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/applications" element={
-                <ProtectedRoute>
-                  <ApplicationsPage />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/favorites" element={
-                <ProtectedRoute>
-                  <FavoritesPage />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/messages" element={
-                <ProtectedRoute>
-                  <MessagesPage />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/shelter-dashboard" element={
-                <ProtectedRoute requireShelter={true}>
-                  <ShelterDashboardPage />
-                </ProtectedRoute>
-              } />
-              
+
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <UserProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/applications"
+                element={
+                  <ProtectedRoute>
+                    <ApplicationsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/favorites"
+                element={
+                  <ProtectedRoute>
+                    <FavoritesPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/messages"
+                element={
+                  <ProtectedRoute>
+                    <MessagesPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/shelter-dashboard"
+                element={
+                  <ProtectedRoute requireShelter={true}>
+                    <ShelterDashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/add-pet"
+                element={
+                  <ProtectedRoute requireShelter={true}>
+                    <AddPetPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/edit-pet/:id"
+                element={
+                  <ProtectedRoute requireShelter={true}>
+                    <EditPetPage />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route path="/foster-program" element={<FosterProgramPage />} />
               <Route path="/404" element={<NotFoundPage />} />
               <Route path="*" element={<Navigate replace to="/404" />} />

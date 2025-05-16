@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { fetchConversations, fetchMessages, sendMessage } from '../services/api';
-import { Search, Send } from 'lucide-react';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
+import React, { useState, useEffect } from "react";
+import {
+  fetchConversations,
+  fetchMessages,
+  sendMessage,
+} from "../services/api";
+import { Search, Send } from "lucide-react";
+import Button from "../components/common/Button";
+import Input from "../components/common/Input";
 
 const MessagesPage = () => {
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const currentUserId = localStorage.getItem("userId") || "";
 
   useEffect(() => {
     loadConversations();
@@ -28,7 +33,7 @@ const MessagesPage = () => {
       const data = await fetchConversations();
       setConversations(data || []);
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      console.error("Error loading conversations:", error);
     } finally {
       setLoading(false);
     }
@@ -37,9 +42,10 @@ const MessagesPage = () => {
   const loadMessages = async (conversationId) => {
     try {
       const data = await fetchMessages(conversationId);
-      setMessages(data || []);
+      setMessages(Array.isArray(data.messages) ? data.messages : []);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      console.error("Error loading messages:", error);
+      setMessages([]);
     }
   };
 
@@ -49,16 +55,25 @@ const MessagesPage = () => {
 
     try {
       await sendMessage(selectedConversation._id, newMessage);
-      setNewMessage('');
+      setNewMessage("");
       loadMessages(selectedConversation._id);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
     }
   };
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.participant?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getOtherParticipant = (conversation) => {
+    return conversation.participants.find((p) => p._id !== currentUserId);
+  };
+
+  const filteredConversations = conversations
+    .map((conv) => ({
+      ...conv,
+      participant: getOtherParticipant(conv),
+    }))
+    .filter((conv) =>
+      conv.participant?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   return (
     <div className="bg-gray-50 min-h-screen py-12">
@@ -68,7 +83,9 @@ const MessagesPage = () => {
             {/* Conversations List */}
             <div className="border-r border-gray-200">
               <div className="p-4 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-800">Messages</h2>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Messages
+                </h2>
                 <div className="mt-2">
                   <Input
                     type="text"
@@ -84,7 +101,10 @@ const MessagesPage = () => {
                 {loading ? (
                   <div className="p-4 space-y-4">
                     {[...Array(5)].map((_, i) => (
-                      <div key={i} className="animate-pulse flex items-center space-x-4">
+                      <div
+                        key={i}
+                        className="animate-pulse flex items-center space-x-4"
+                      >
                         <div className="rounded-full bg-gray-200 h-12 w-12"></div>
                         <div className="flex-1 space-y-2">
                           <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -99,13 +119,18 @@ const MessagesPage = () => {
                       <button
                         key={conversation._id}
                         className={`w-full p-4 text-left hover:bg-gray-50 focus:outline-none ${
-                          selectedConversation?._id === conversation._id ? 'bg-purple-50' : ''
+                          selectedConversation?._id === conversation._id
+                            ? "bg-purple-50"
+                            : ""
                         }`}
                         onClick={() => setSelectedConversation(conversation)}
                       >
                         <div className="flex items-center space-x-3">
                           <img
-                            src={conversation.participant.avatar || 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg'}
+                            src={
+                              conversation.participant.avatar ||
+                              "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg"
+                            }
                             alt={conversation.participant.name}
                             className="h-12 w-12 rounded-full object-cover"
                           />
@@ -114,7 +139,9 @@ const MessagesPage = () => {
                               {conversation.participant.name}
                             </p>
                             <p className="text-sm text-gray-500 truncate">
-                              {conversation.lastMessage?.content || 'No messages yet'}
+                              {conversation.subject ||
+                                conversation.lastMessage?.content ||
+                                "No messages yet"}
                             </p>
                           </div>
                           {conversation.unreadCount > 0 && (
@@ -141,7 +168,10 @@ const MessagesPage = () => {
                   {/* Conversation Header */}
                   <div className="p-4 border-b border-gray-200 flex items-center">
                     <img
-                      src={selectedConversation.participant.avatar || 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg'}
+                      src={
+                        selectedConversation.participant.avatar ||
+                        "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg"
+                      }
                       alt={selectedConversation.participant.name}
                       className="h-10 w-10 rounded-full object-cover mr-3"
                     />
@@ -150,41 +180,60 @@ const MessagesPage = () => {
                         {selectedConversation.participant.name}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {selectedConversation.participant.role === 'shelter' ? 'Shelter' : 'Adopter'}
+                        {selectedConversation.participant.role === "shelter"
+                          ? "Shelter"
+                          : "Adopter"}
                       </p>
                     </div>
                   </div>
 
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message._id}
-                        className={`flex ${
-                          message.sender === 'user' ? 'justify-end' : 'justify-start'
-                        }`}
-                      >
+                    {messages.map((message) => {
+                      const isCurrentUser =
+                        message.sender === currentUserId ||
+                        message.sender?._id === currentUserId;
+                      const isShelter =
+                        selectedConversation?.participant?.role === "shelter";
+
+                      return (
                         <div
-                          className={`max-w-xs lg:max-w-md rounded-lg p-3 ${
-                            message.sender === 'user'
-                              ? 'bg-purple-600 text-white'
-                              : 'bg-gray-100 text-gray-800'
+                          key={message._id}
+                          className={`flex ${
+                            isCurrentUser ? "justify-end" : "justify-start"
                           }`}
                         >
-                          <p className="text-sm">{message.content}</p>
-                          <p className={`text-xs mt-1 ${
-                            message.sender === 'user' ? 'text-purple-200' : 'text-gray-500'
-                          }`}>
-                            {new Date(message.createdAt).toLocaleTimeString()}
-                          </p>
+                          <div
+                            className={`max-w-xs lg:max-w-md rounded-lg p-3 ${
+                              isCurrentUser
+                                ? "bg-purple-600 text-white"
+                                : isShelter
+                                ? "bg-yellow-100 text-yellow-900"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            <p className="text-sm">{message.content}</p>
+                            <p
+                              className={`text-xs mt-1 ${
+                                isCurrentUser
+                                  ? "text-purple-200"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              {new Date(message.createdAt).toLocaleTimeString()}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Message Input */}
                   <div className="p-4 border-t border-gray-200">
-                    <form onSubmit={handleSendMessage} className="flex space-x-2">
+                    <form
+                      onSubmit={handleSendMessage}
+                      className="flex space-x-2"
+                    >
                       <Input
                         type="text"
                         value={newMessage}
