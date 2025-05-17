@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-const API_URL = 'https://pet-adoption-platform-oti5.onrender.com';
+const API_URL = 'https://pet-adoption-platform-an01.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,
