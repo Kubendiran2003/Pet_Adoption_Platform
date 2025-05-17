@@ -758,7 +758,7 @@ const PetDetailsPage = () => {
                   {pet.fosterInfo?.availableForFostering ? (
                     <Link
                       to={`/pets/${pet._id}/foster`}
-                      className="block w-full"
+                      className="block mt-1 w-full"
                     >
                       <Button variant="primary" fullWidth>
                         <Clipboard size={18} className="mr-2" />
