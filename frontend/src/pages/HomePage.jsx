@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Heart, Users, PawPrint, ArrowRight } from 'lucide-react';
-import Button from '../components/common/Button';
-import PetCard from '../components/pets/PetCard';
-import { fetchPets } from '../services/api';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Search, Heart, Users, PawPrint, ArrowRight } from "lucide-react";
+import Button from "../components/common/Button";
+import PetCard from "../components/pets/PetCard";
+import { fetchPets } from "../services/api";
+import { toast } from "react-hot-toast";
 
 const HomePage = () => {
   const [featuredPets, setFeaturedPets] = useState([]);
@@ -13,10 +14,13 @@ const HomePage = () => {
     const loadFeaturedPets = async () => {
       try {
         setLoading(true);
-        const response = await fetchPets({ limit: 4, featured: true });
-        setFeaturedPets(response.pets || []);
+        const response = await fetchPets({ limit: 4, status: "Available" });
+        const pets = response.data || [];
+
+        setFeaturedPets(pets.slice(0, 4));
       } catch (error) {
-        console.error('Error loading featured pets:', error);
+        console.error("Error loading featured pets:", error);
+        toast.error("Failed to load featured pets");
       } finally {
         setLoading(false);
       }
@@ -29,11 +33,12 @@ const HomePage = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative">
-        <div 
+        <div
           className="h-[700px] bg-cover bg-center"
-          style={{ 
-            backgroundImage: 'url(https://images.pexels.com/photos/406014/pexels-photo-406014.jpeg?auto=compress&cs=tinysrgb&w=1600)', 
-            backgroundPosition: '50% 40%'
+          style={{
+            backgroundImage:
+              "url(https://images.pexels.com/photos/406014/pexels-photo-406014.jpeg?auto=compress&cs=tinysrgb&w=1600)",
+            backgroundPosition: "50% 40%",
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 to-purple-600/40"></div>
@@ -41,16 +46,23 @@ const HomePage = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
               <div className="max-w-2xl">
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-                  Find Your Perfect <span className="text-purple-300">Furry Companion</span>
+                  Find Your Perfect{" "}
+                  <span className="text-purple-300">Furry Companion</span>
                 </h1>
                 <p className="text-xl text-white mb-8 opacity-90">
-                  Connect with pets looking for their forever homes. Your new best friend is just a click away.
+                  Connect with pets looking for their forever homes. Your new
+                  best friend is just a click away.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button to="/pets" variant="primary" size="lg">
                     Find a Pet
                   </Button>
-                  <Button to="/foster-program" variant="outline" size="lg" className="bg-white/20 text-white border-white hover:bg-white/30">
+                  <Button
+                    to="/foster-program"
+                    variant="outline"
+                    size="lg"
+                    className="bg-white/20 text-white border-white hover:bg-white/30"
+                  >
                     Learn About Fostering
                   </Button>
                 </div>
@@ -62,10 +74,14 @@ const HomePage = () => {
         {/* Pet Search Box */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-20">
           <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Find Your New Best Friend</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              Find Your New Best Friend
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="col-span-3 md:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Animal</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Animal
+                </label>
                 <select className="w-full border border-gray-300 rounded-md p-2 focus:ring-purple-500 focus:border-purple-500">
                   <option value="">All Animals</option>
                   <option value="dog">Dogs</option>
@@ -76,7 +92,9 @@ const HomePage = () => {
                 </select>
               </div>
               <div className="col-span-3 md:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
                 <input
                   type="text"
                   placeholder="City or ZIP code"
@@ -94,20 +112,25 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Featured Pets Section */}
+      {/* Featured Pets Section - Updated */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Pets</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Available Pets
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              These lovable companions are waiting for their forever homes. Could you be their perfect match?
+              These lovable companions are waiting for their forever homes.
             </p>
           </div>
 
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+                <div
+                  key={i}
+                  className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse"
+                >
                   <div className="h-48 bg-gray-300"></div>
                   <div className="p-4">
                     <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
@@ -120,18 +143,22 @@ const HomePage = () => {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : featuredPets.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {featuredPets.length > 0 ? (
-                  featuredPets.map(pet => (
-                    <PetCard key={pet._id} pet={pet} />
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-8">
-                    <p className="text-gray-500">No featured pets available at the moment.</p>
-                  </div>
-                )}
+                {featuredPets.map((pet) => {
+                  // Transform pet data to match PetCard expectations
+                  const transformedPet = {
+                    ...pet,
+                    photoUrl:
+                      pet.photos?.find((p) => p.isMain)?.url ||
+                      "https://via.placeholder.com/300x200?text=No+Image",
+                    age: pet.age?.value || 0,
+                    ageUnit: pet.age?.unit || "years",
+                  };
+
+                  return <PetCard key={pet._id} pet={transformedPet} />;
+                })}
               </div>
 
               <div className="mt-12 text-center">
@@ -141,6 +168,15 @@ const HomePage = () => {
                 </Button>
               </div>
             </>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">
+                No pets available at the moment.
+              </p>
+              <Button to="/pets" variant="outline">
+                Check All Pets
+              </Button>
+            </div>
           )}
         </div>
       </section>
@@ -149,9 +185,12 @@ const HomePage = () => {
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              How It Works
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We've made the adoption process simple and straightforward so you can focus on finding your perfect pet.
+              We've made the adoption process simple and straightforward so you
+              can focus on finding your perfect pet.
             </p>
           </div>
 
@@ -160,9 +199,13 @@ const HomePage = () => {
               <div className="bg-purple-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <Search className="text-white w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Search & Discover</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                Search & Discover
+              </h3>
               <p className="text-gray-600">
-                Browse our database of adorable pets waiting for adoption. Use filters to find your perfect match based on species, age, size, and more.
+                Browse our database of adorable pets waiting for adoption. Use
+                filters to find your perfect match based on species, age, size,
+                and more.
               </p>
             </div>
 
@@ -170,9 +213,13 @@ const HomePage = () => {
               <div className="bg-purple-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <Heart className="text-white w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Apply & Connect</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                Apply & Connect
+              </h3>
               <p className="text-gray-600">
-                Submit an adoption application for your chosen pet. Our shelter partners will review your application and contact you to discuss the next steps.
+                Submit an adoption application for your chosen pet. Our shelter
+                partners will review your application and contact you to discuss
+                the next steps.
               </p>
             </div>
 
@@ -180,9 +227,13 @@ const HomePage = () => {
               <div className="bg-purple-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <PawPrint className="text-white w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Welcome Home</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                Welcome Home
+              </h3>
               <p className="text-gray-600">
-                Meet your new companion, complete the adoption process, and welcome your new family member home. A lifetime of love and memories awaits!
+                Meet your new companion, complete the adoption process, and
+                welcome your new family member home. A lifetime of love and
+                memories awaits!
               </p>
             </div>
           </div>
@@ -195,16 +246,17 @@ const HomePage = () => {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Success Stories</h2>
             <p className="text-xl opacity-90 max-w-3xl mx-auto">
-              Hear from families who found their perfect companions through our platform.
+              Hear from families who found their perfect companions through our
+              platform.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8">
               <div className="flex items-center mb-6">
-                <img 
-                  src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
-                  alt="Sarah J." 
+                <img
+                  src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                  alt="Sarah J."
                   className="w-16 h-16 rounded-full object-cover mr-4"
                 />
                 <div>
@@ -213,15 +265,17 @@ const HomePage = () => {
                 </div>
               </div>
               <p className="italic opacity-90">
-                "Max has brought so much joy to our family. The adoption process was smooth, and the shelter was incredibly helpful. We couldn't imagine life without him now!"
+                "Max has brought so much joy to our family. The adoption process
+                was smooth, and the shelter was incredibly helpful. We couldn't
+                imagine life without him now!"
               </p>
             </div>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8">
               <div className="flex items-center mb-6">
-                <img 
-                  src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
-                  alt="David T." 
+                <img
+                  src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                  alt="David T."
                   className="w-16 h-16 rounded-full object-cover mr-4"
                 />
                 <div>
@@ -230,15 +284,17 @@ const HomePage = () => {
                 </div>
               </div>
               <p className="italic opacity-90">
-                "The match algorithm really works! Luna fits perfectly with our lifestyle. She's playful but also content to curl up next to me while I work. The best decision ever."
+                "The match algorithm really works! Luna fits perfectly with our
+                lifestyle. She's playful but also content to curl up next to me
+                while I work. The best decision ever."
               </p>
             </div>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8">
               <div className="flex items-center mb-6">
-                <img 
-                  src="https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
-                  alt="Emily & Mark" 
+                <img
+                  src="https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                  alt="Emily & Mark"
                   className="w-16 h-16 rounded-full object-cover mr-4"
                 />
                 <div>
@@ -247,7 +303,9 @@ const HomePage = () => {
                 </div>
               </div>
               <p className="italic opacity-90">
-                "As first-time pet owners, we were nervous. The resources on the platform helped us prepare, and the shelter staff answered all our questions. Bella is now the center of our world!"
+                "As first-time pet owners, we were nervous. The resources on the
+                platform helped us prepare, and the shelter staff answered all
+                our questions. Bella is now the center of our world!"
               </p>
             </div>
           </div>
@@ -260,9 +318,12 @@ const HomePage = () => {
           <div className="bg-purple-100 rounded-2xl overflow-hidden shadow-xl">
             <div className="grid grid-cols-1 md:grid-cols-2">
               <div className="p-12 flex flex-col justify-center">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Find Your Perfect Match?</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  Ready to Find Your Perfect Match?
+                </h2>
                 <p className="text-lg text-gray-700 mb-8">
-                  Whether you're looking to adopt, foster, or volunteer, we have plenty of loving animals waiting for a second chance.
+                  Whether you're looking to adopt, foster, or volunteer, we have
+                  plenty of loving animals waiting for a second chance.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button to="/pets" variant="primary" size="lg">
@@ -273,9 +334,12 @@ const HomePage = () => {
                   </Button>
                 </div>
               </div>
-              <div 
+              <div
                 className="bg-cover bg-center h-96 md:h-auto"
-                style={{ backgroundImage: 'url(https://images.pexels.com/photos/1254140/pexels-photo-1254140.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)' }}
+                style={{
+                  backgroundImage:
+                    "url(https://images.pexels.com/photos/1254140/pexels-photo-1254140.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)",
+                }}
               ></div>
             </div>
           </div>
@@ -286,27 +350,38 @@ const HomePage = () => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Our Shelter Partners</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Our Shelter Partners
+            </h2>
             <p className="text-gray-600">
-              We work with trusted animal shelters and rescue groups across the country.
+              We work with trusted animal shelters and rescue groups across the
+              country.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white p-6 rounded-lg shadow-sm flex items-center justify-center">
+              <div
+                key={i}
+                className="bg-white p-6 rounded-lg shadow-sm flex items-center justify-center"
+              >
                 <div className="text-center">
                   <div className="flex items-center justify-center">
                     <PawPrint size={32} className="text-purple-600 mr-2" />
-                    <span className="font-semibold text-gray-800 text-lg">Shelter {i + 1}</span>
+                    <span className="font-semibold text-gray-800 text-lg">
+                      Shelter {i + 1}
+                    </span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          
+
           <div className="mt-10 text-center">
-            <Link to="#" className="inline-flex items-center text-purple-600 font-medium hover:text-purple-700">
+            <Link
+              to="#"
+              className="inline-flex items-center text-purple-600 font-medium hover:text-purple-700"
+            >
               View All Partners
               <ArrowRight size={16} className="ml-1" />
             </Link>

@@ -17,6 +17,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import ApplicationsPage from "./pages/ApplicationsPage";
+import FosterApplicationForm from "./components/applications/FosterApplicationForm";
 import FavoritesPage from "./pages/FavoritesPage";
 import ShelterDashboardPage from "./pages/ShelterDashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -124,6 +125,15 @@ function App() {
                 element={
                   <ProtectedRoute requireShelter={true}>
                     <EditPetPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/pets/:petId/foster"
+                element={
+                  <ProtectedRoute>
+                    <FosterApplicationForm />
                   </ProtectedRoute>
                 }
               />

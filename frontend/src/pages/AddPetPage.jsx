@@ -1,9 +1,10 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { createPet } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 function AddPetPage() {
-  // TODO: Replace this with actual logged-in user ID from your auth context or state
+  const navigate = useNavigate();
   const loggedInShelterId = "YOUR_SHELTER_ID";
 
   const [formData, setFormData] = useState({
@@ -100,6 +101,9 @@ function AddPetPage() {
         image: null,
       });
       setPreview(null);
+      navigate("/shelter-dashboard", {
+        state: { refresh: true, shelterId: loggedInShelterId },
+      });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to add pet");
     }

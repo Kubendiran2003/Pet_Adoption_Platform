@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const response = await api.put("/api/users/profile", userData);
       setCurrentUser(response.data);
-      localStorage.setItem("user", JSON.stringify(response.data)); // ✅ Update local user
+      localStorage.setItem("user", JSON.stringify(response.data));
       toast.success("Profile updated successfully!");
       return true;
     } catch (error) {

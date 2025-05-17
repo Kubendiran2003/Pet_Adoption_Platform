@@ -1,16 +1,24 @@
-import React from 'react';
-import { PawPrint, Heart, Home, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
-import Button from '../components/common/Button';
+import React from "react";
+import {
+  PawPrint,
+  Heart,
+  Home,
+  Calendar,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import Button from "../components/common/Button";
 
 const FosterProgramPage = () => {
   return (
     <div className="bg-white">
       {/* Hero Section */}
       <div className="relative bg-purple-700 py-24">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ 
-            backgroundImage: 'url(https://images.pexels.com/photos/1350593/pexels-photo-1350593.jpeg?auto=compress&cs=tinysrgb&w=1600)'
+          style={{
+            backgroundImage:
+              "url(https://images.pexels.com/photos/1350593/pexels-photo-1350593.jpeg?auto=compress&cs=tinysrgb&w=1600)",
           }}
         ></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -18,13 +26,10 @@ const FosterProgramPage = () => {
             Become a Foster Parent
           </h1>
           <p className="text-xl text-purple-100 max-w-3xl mx-auto mb-8">
-            Open your heart and home to pets in need. Foster parents provide temporary care and love until permanent homes are found.
+            Open your heart and home to pets in need. Foster parents provide
+            temporary care and love until permanent homes are found.
           </p>
-          <Button 
-            variant="primary" 
-            size="lg"
-            className="bg-white text-purple-700 hover:bg-purple-50"
-          >
+          <Button to="/pets" variant="primary" size="lg" className="border">
             Apply to Foster
           </Button>
         </div>
@@ -34,9 +39,12 @@ const FosterProgramPage = () => {
       <div className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Foster?</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Why Foster?
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Fostering saves lives and provides crucial support to our shelter network. Here's how you can make a difference.
+              Fostering saves lives and provides crucial support to our shelter
+              network. Here's how you can make a difference.
             </p>
           </div>
 
@@ -47,7 +55,8 @@ const FosterProgramPage = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Save Lives</h3>
               <p className="text-gray-600">
-                Each foster home opens up space in shelters for more animals to be rescued.
+                Each foster home opens up space in shelters for more animals to
+                be rescued.
               </p>
             </div>
 
@@ -65,9 +74,12 @@ const FosterProgramPage = () => {
               <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Calendar className="text-purple-600 w-8 h-8" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Flexible Commitment</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                Flexible Commitment
+              </h3>
               <p className="text-gray-600">
-                Choose fostering opportunities that fit your schedule and lifestyle.
+                Choose fostering opportunities that fit your schedule and
+                lifestyle.
               </p>
             </div>
           </div>
@@ -78,9 +90,12 @@ const FosterProgramPage = () => {
       <div className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">How Fostering Works</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              How Fostering Works
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our fostering process is designed to be straightforward and supportive.
+              Our fostering process is designed to be straightforward and
+              supportive.
             </p>
           </div>
 
@@ -92,10 +107,11 @@ const FosterProgramPage = () => {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Apply</h3>
                 <p className="text-gray-600">
-                  Fill out our foster application form and complete a brief interview.
+                  Fill out our foster application form and complete a brief
+                  interview.
                 </p>
               </div>
-              <div className="hidden md:block absolute top-1/2 left-full w-full h-0.5 bg-purple-200 transform -translate-y-1/2"></div>
+              <div className="hidden md:block absolute top-1/2 left-full w-full h-0.5  transform -translate-y-1/2"></div>
             </div>
 
             <div className="relative">
@@ -105,10 +121,11 @@ const FosterProgramPage = () => {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Home Check</h3>
                 <p className="text-gray-600">
-                  We'll verify your living space is safe and suitable for fostering.
+                  We'll verify your living space is safe and suitable for
+                  fostering.
                 </p>
               </div>
-              <div className="hidden md:block absolute top-1/2 left-full w-full h-0.5 bg-purple-200 transform -translate-y-1/2"></div>
+              <div className="hidden md:block absolute top-1/2 left-full w-full h-0.5  transform -translate-y-1/2"></div>
             </div>
 
             <div className="relative">
@@ -118,10 +135,11 @@ const FosterProgramPage = () => {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Match</h3>
                 <p className="text-gray-600">
-                  Get matched with pets that fit your experience and availability.
+                  Get matched with pets that fit your experience and
+                  availability.
                 </p>
               </div>
-              <div className="hidden md:block absolute top-1/2 left-full w-full h-0.5 bg-purple-200 transform -translate-y-1/2"></div>
+              <div className="hidden md:block absolute top-1/2 left-full w-full h-0.5 transform -translate-y-1/2"></div>
             </div>
 
             <div className="text-center">
@@ -141,7 +159,9 @@ const FosterProgramPage = () => {
       <div className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Foster Requirements</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Foster Requirements
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Basic requirements to become a foster parent.
             </p>
@@ -163,7 +183,9 @@ const FosterProgramPage = () => {
                 <CheckCircle className="text-green-500 w-6 h-6 mt-1 mr-3 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold mb-2">Residence</h3>
-                  <p className="text-gray-600">Stable housing situation with landlord approval if renting</p>
+                  <p className="text-gray-600">
+                    Stable housing situation with landlord approval if renting
+                  </p>
                 </div>
               </div>
             </div>
@@ -173,7 +195,9 @@ const FosterProgramPage = () => {
                 <CheckCircle className="text-green-500 w-6 h-6 mt-1 mr-3 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold mb-2">Time Commitment</h3>
-                  <p className="text-gray-600">Ability to provide daily care and attention</p>
+                  <p className="text-gray-600">
+                    Ability to provide daily care and attention
+                  </p>
                 </div>
               </div>
             </div>
@@ -183,7 +207,9 @@ const FosterProgramPage = () => {
                 <CheckCircle className="text-green-500 w-6 h-6 mt-1 mr-3 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold mb-2">Transportation</h3>
-                  <p className="text-gray-600">Reliable transportation for vet visits</p>
+                  <p className="text-gray-600">
+                    Reliable transportation for vet visits
+                  </p>
                 </div>
               </div>
             </div>
@@ -195,9 +221,12 @@ const FosterProgramPage = () => {
       <div className="bg-purple-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">We Support Our Fosters</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              We Support Our Fosters
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              You're never alone in your fostering journey. We provide comprehensive support.
+              You're never alone in your fostering journey. We provide
+              comprehensive support.
             </p>
           </div>
 
@@ -263,7 +292,9 @@ const FosterProgramPage = () => {
       <div className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Frequently Asked Questions
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Common questions about our foster program.
             </p>
@@ -271,23 +302,35 @@ const FosterProgramPage = () => {
 
           <div className="max-w-3xl mx-auto space-y-6">
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold mb-2">How long do I need to foster?</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                How long do I need to foster?
+              </h3>
               <p className="text-gray-600">
-                Foster periods vary depending on the pet's needs, typically ranging from a few weeks to a few months. We work with your schedule and preferences.
+                Foster periods vary depending on the pet's needs, typically
+                ranging from a few weeks to a few months. We work with your
+                schedule and preferences.
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold mb-2">Can I foster if I have pets?</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Can I foster if I have pets?
+              </h3>
               <p className="text-gray-600">
-                Yes! Many of our foster parents have resident pets. We'll match you with compatible foster pets and provide guidance on introductions.
+                Yes! Many of our foster parents have resident pets. We'll match
+                you with compatible foster pets and provide guidance on
+                introductions.
               </p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold mb-2">What if I want to adopt my foster pet?</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                What if I want to adopt my foster pet?
+              </h3>
               <p className="text-gray-600">
-                Foster parents often have the first opportunity to adopt their foster pets. We call this "foster failing" - and it's perfectly okay!
+                Foster parents often have the first opportunity to adopt their
+                foster pets. We call this "foster failing" - and it's perfectly
+                okay!
               </p>
             </div>
           </div>
@@ -297,22 +340,21 @@ const FosterProgramPage = () => {
       {/* CTA Section */}
       <div className="bg-purple-700 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to Make a Difference?</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Ready to Make a Difference?
+          </h2>
           <p className="text-xl text-purple-100 mb-8 max-w-3xl mx-auto">
-            Join our network of foster parents and help save lives, one pet at a time.
+            Join our network of foster parents and help save lives, one pet at a
+            time.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              variant="primary"
-              size="lg"
-              className="bg-white text-purple-700 hover:bg-purple-50"
-            >
+            <Button to="/pets" variant="primary" size="lg" className="border">
               Apply Now
             </Button>
-            <Button 
+            <Button
               variant="outline"
               size="lg"
-              className="border-white text-white hover:bg-purple-600"
+              className="border hover:bg-purple-600 hover:text-white"
             >
               Learn More
             </Button>

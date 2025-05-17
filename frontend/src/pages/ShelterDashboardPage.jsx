@@ -11,13 +11,17 @@ import {
   Edit,
   Trash,
   MessageCircle,
+  Home,
 } from "lucide-react";
 import {
   fetchShelterPets,
   fetchShelterApplications,
+  getShelterFosterApplications,
   deletePet,
   approveApplication,
   rejectApplication,
+  approveFosterApplication,
+  rejectFosterApplication,
 } from "../services/api";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
@@ -30,6 +34,7 @@ const ShelterDashboardPage = () => {
   const [activeTab, setActiveTab] = useState("pets");
   const [pets, setPets] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [fosterApplications, setFosterApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -61,9 +66,11 @@ const ShelterDashboardPage = () => {
       try {
         const petsResponse = await fetchShelterPets(shelterId);
         const applicationsResponse = await fetchShelterApplications();
+        const fosterAppsResponse = await getShelterFosterApplications();
 
         setPets(petsResponse.data || []);
         setApplications(applicationsResponse.data || []);
+        setFosterApplications(fosterAppsResponse.data || []);
       } catch (error) {
         console.error("Error loading dashboard data:", error);
       } finally {
@@ -95,16 +102,10 @@ const ShelterDashboardPage = () => {
 
     setActionLoading(true);
     try {
-      // 1. Make API call
       await deletePet(selectedPetId);
-
-      // 2. Update state optimistically
-      setPets((prevPets) => {
-        const updatedPets = prevPets.filter((pet) => pet._id !== selectedPetId);
-        return updatedPets;
-      });
-
-      // 3. Show success message
+      setPets((prevPets) =>
+        prevPets.filter((pet) => pet._id !== selectedPetId)
+      );
       toast.success(`Pet deleted successfully`);
     } catch (error) {
       console.error("Delete failed:", error);
@@ -154,11 +155,47 @@ const ShelterDashboardPage = () => {
     }
   };
 
+  const handleApproveFoster = async (appId) => {
+    setAppActionLoadingId(appId);
+    try {
+      const updatedApp = await approveFosterApplication(appId);
+      setFosterApplications((prev) =>
+        prev.map((app) =>
+          app._id === appId ? { ...app, status: updatedApp.status } : app
+        )
+      );
+      toast.success("Foster application approved");
+    } catch (error) {
+      console.error("Error approving foster:", error);
+      toast.error(error.response?.data?.error || "Failed to approve foster");
+    } finally {
+      setAppActionLoadingId(null);
+    }
+  };
+
+  const handleRejectFoster = async (appId) => {
+    setAppActionLoadingId(appId);
+    try {
+      await rejectFosterApplication(appId);
+      setFosterApplications((prev) =>
+        prev.map((app) =>
+          app._id === appId ? { ...app, status: "Rejected" } : app
+        )
+      );
+      toast.success("Foster application rejected");
+    } catch (error) {
+      console.error("Error rejecting foster:", error);
+      toast.error(error.response?.data?.message || "Failed to reject foster");
+    } finally {
+      setAppActionLoadingId(null);
+    }
+  };
+
   // Filters
   const filteredPets = pets.filter(
     (pet) =>
       pet.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterStatus ? pet.adoptionStatus === filterStatus : true)
+      (filterStatus ? pet.status === filterStatus : true)
   );
 
   const filteredApplications = Array.isArray(applications)
@@ -169,14 +206,35 @@ const ShelterDashboardPage = () => {
       )
     : [];
 
+  const filteredFosterApplications = Array.isArray(fosterApplications)
+    ? fosterApplications.filter(
+        (app) =>
+          app.pet?.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          (filterStatus ? app.status === filterStatus : true)
+      )
+    : [];
+
   // Counts for dashboard summary
   const totalPets = pets.length;
   const totalApplications = applications.length;
-  const adoptedCount = pets.filter(
-    (pet) => pet.adoptionStatus === "adopted"
+  const totalFosterApplications = fosterApplications.length;
+  const adoptedCount = applications.filter(
+    (app) => app.status === "Approved"
+  ).length;
+  const fosteredCount = applications.filter(
+    (app) => app.status === "Approved"
   ).length;
   const pendingCount = applications.filter(
-    (app) => app.status === "Submitted" || app.status === "Under Review"
+    (app) =>
+      app.status === "Submitted" ||
+      app.status === "Under Review" ||
+      app.status === "Pending"
+  ).length;
+  const pendingFosterCount = fosterApplications.filter(
+    (app) =>
+      app.status === "Submitted" ||
+      app.status === "Under Review" ||
+      app.status === "Pending"
   ).length;
 
   useEffect(() => {
@@ -185,10 +243,13 @@ const ShelterDashboardPage = () => {
 
       setLoading(true);
       try {
-        const petsResponse = await fetchShelterPets(shelterId);
-        const applicationsResponse = await fetchShelterApplications();
+        const [petsResponse, appsResponse, fosterAppsResponse] =
+          await Promise.all([
+            fetchShelterPets(shelterId),
+            fetchShelterApplications(),
+            getShelterFosterApplications(),
+          ]);
 
-        // If we have updated pet data from navigation state, merge it
         if (location.state?.updatedPet) {
           setPets((prev) =>
             prev.map((pet) =>
@@ -201,13 +262,13 @@ const ShelterDashboardPage = () => {
           setPets(petsResponse.data || []);
         }
 
-        setApplications(applicationsResponse.data || []);
+        setApplications(appsResponse.data || []);
+        setFosterApplications(fosterAppsResponse.data || []);
       } catch (error) {
         console.error("Error loading dashboard data:", error);
       } finally {
         setLoading(false);
 
-        // Clear the state after processing
         if (location.state?.refresh || location.state?.updatedPet) {
           navigate(location.pathname, { replace: true, state: {} });
         }
@@ -228,7 +289,7 @@ const ShelterDashboardPage = () => {
                 Shelter Dashboard
               </h1>
               <p className="text-gray-600">
-                Manage your pets and adoption applications
+                Manage your pets, adoption and foster applications
               </p>
             </div>
             <div className="mt-4 md:mt-0">
@@ -239,7 +300,7 @@ const ShelterDashboardPage = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mt-8">
             <div className="bg-purple-50 rounded-lg p-4">
               <div className="flex items-center">
                 <div className="bg-purple-100 rounded-full p-3">
@@ -260,7 +321,7 @@ const ShelterDashboardPage = () => {
                   <Users className="text-blue-600 w-6 h-6" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm text-gray-600">Applications</p>
+                  <p className="text-sm text-gray-600">Adoption Apps</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {totalApplications}
                   </p>
@@ -276,7 +337,7 @@ const ShelterDashboardPage = () => {
                 <div className="ml-4">
                   <p className="text-sm text-gray-600">Adopted</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {adoptedCount}
+                    {adoptedCount + fosteredCount}
                   </p>
                 </div>
               </div>
@@ -290,7 +351,21 @@ const ShelterDashboardPage = () => {
                 <div className="ml-4">
                   <p className="text-sm text-gray-600">Pending</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {pendingCount}
+                    {pendingCount + pendingFosterCount}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-orange-50 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="bg-orange-100 rounded-full p-3">
+                  <Home className="text-orange-600 w-6 h-6" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm text-gray-600">Foster Apps</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {totalFosterApplications}
                   </p>
                 </div>
               </div>
@@ -322,7 +397,20 @@ const ShelterDashboardPage = () => {
                 }`}
                 aria-current={activeTab === "applications" ? "page" : undefined}
               >
-                Applications
+                Adoption Applications
+              </button>
+              <button
+                onClick={() => setActiveTab("foster-applications")}
+                className={`py-4 px-6 text-sm font-medium ${
+                  activeTab === "foster-applications"
+                    ? "border-b-2 border-purple-500 text-purple-600"
+                    : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+                aria-current={
+                  activeTab === "foster-applications" ? "page" : undefined
+                }
+              >
+                Foster Applications
               </button>
             </nav>
           </div>
@@ -334,7 +422,11 @@ const ShelterDashboardPage = () => {
                 <Input
                   type="text"
                   placeholder={`Search ${
-                    activeTab === "pets" ? "pets" : "applications"
+                    activeTab === "pets"
+                      ? "pets"
+                      : activeTab === "applications"
+                      ? "adoption applications"
+                      : "foster applications"
                   }...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -350,17 +442,25 @@ const ShelterDashboardPage = () => {
                     activeTab === "pets"
                       ? [
                           { value: "", label: "All Statuses" },
-                          { value: "available", label: "Available" },
-                          { value: "pending", label: "Pending" },
-                          { value: "adopted", label: "Adopted" },
+                          { value: "Available", label: "Available" },
+                          { value: "Pending", label: "Pending" },
+                          { value: "Approved", label: "Adopted" },
+                          { value: "Fostered", label: "Fostered" },
                         ]
-                      : [
+                      : activeTab === "applications"
+                      ? [
                           { value: "", label: "All Statuses" },
                           { value: "Submitted", label: "Submitted" },
                           { value: "Under Review", label: "Under Review" },
                           { value: "Approved", label: "Approved" },
                           { value: "Denied", label: "Denied" },
-                          { value: "Withdrawn", label: "Withdrawn" },
+                        ]
+                      : [
+                          { value: "", label: "All Statuses" },
+                          { value: "Pending", label: "Pending" },
+                          { value: "Approved", label: "Approved" },
+                          { value: "Rejected", label: "Rejected" },
+                          { value: "Completed", label: "Completed" },
                         ]
                   }
                   aria-label={`Filter ${activeTab} by status`}
@@ -436,14 +536,16 @@ const ShelterDashboardPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              pet.adoptionStatus === "available"
+                              pet.status === "Available"
                                 ? "bg-green-100 text-green-800"
-                                : pet.adoptionStatus === "pending"
+                                : pet.status === "Pending"
                                 ? "bg-yellow-100 text-yellow-800"
+                                : pet.status === "Fostered"
+                                ? "bg-blue-100 text-blue-800"
                                 : "bg-purple-100 text-purple-800"
                             }`}
                           >
-                            {pet.adoptionStatus}
+                            {pet.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -473,7 +575,7 @@ const ShelterDashboardPage = () => {
                                 : "cursor-pointer"
                             }`}
                             aria-label={`Delete ${pet.name}`}
-                            data-testid={`delete-pet-${pet._id}`} // For testing
+                            data-testid={`delete-pet-${pet._id}`}
                           >
                             {actionLoading && selectedPetId === pet._id ? (
                               <span className="animate-spin">🌀</span>
@@ -497,7 +599,7 @@ const ShelterDashboardPage = () => {
                   </tbody>
                 </table>
               </div>
-            ) : (
+            ) : activeTab === "applications" ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead>
@@ -569,6 +671,7 @@ const ShelterDashboardPage = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                           {app.status === "Submitted" ||
+                          app.status === "Pending" ||
                           app.status === "Under Review" ? (
                             <>
                               <button
@@ -606,7 +709,135 @@ const ShelterDashboardPage = () => {
                           colSpan={5}
                           className="text-center py-10 text-gray-500 italic"
                         >
-                          No applications found.
+                          No adoption applications found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Applicant
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Pet
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Dates
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredFosterApplications.map((app) => (
+                      <tr key={app._id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {app.user?.name || "Unknown"}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {app.user?.email}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <img
+                              src={
+                                app.pet.photos?.[0]?.url ||
+                                "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg"
+                              }
+                              alt={app.pet?.name || "Pet"}
+                              className="h-12 w-12 rounded-lg object-cover"
+                            />
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {app.pet?.name || "Unknown Pet"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {app.pet?.breed}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              app.status === "Submitted" ||
+                              app.status === "Pending" ||
+                              app.status === "Under Review"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : app.status === "Approved"
+                                ? "bg-green-100 text-green-800"
+                                : app.status === "Completed"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {app.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div>
+                            <div>
+                              Start:{" "}
+                              {new Date(app.startDate).toLocaleDateString()}
+                            </div>
+                            <div>
+                              End: {new Date(app.endDate).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                          {app.status === "Submitted" ||
+                          app.status === "Pending" ||
+                          app.status === "Under Review" ? (
+                            <>
+                              <button
+                                onClick={() => handleApproveFoster(app._id)}
+                                disabled={appActionLoadingId === app._id}
+                                className="inline-flex items-center px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                                aria-label={`Approve foster application from ${app.user?.name}`}
+                              >
+                                {appActionLoadingId === app._id
+                                  ? "Approving..."
+                                  : "Approve"}
+                              </button>
+                              <button
+                                onClick={() => handleRejectFoster(app._id)}
+                                disabled={appActionLoadingId === app._id}
+                                className="inline-flex items-center px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                                aria-label={`Reject foster application from ${app.user?.name}`}
+                              >
+                                {appActionLoadingId === app._id
+                                  ? "Rejecting..."
+                                  : "Reject"}
+                              </button>
+                            </>
+                          ) : (
+                            <span className="italic text-gray-600">
+                              No actions
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredFosterApplications.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="text-center py-10 text-gray-500 italic"
+                        >
+                          No foster applications found.
                         </td>
                       </tr>
                     )}

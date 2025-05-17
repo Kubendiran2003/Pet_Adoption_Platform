@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import {
   Heart,
@@ -8,6 +8,7 @@ import {
   User,
   Clipboard,
   MessageCircle,
+  ThumbsUp,
   Star,
   Share2,
   ChevronLeft,
@@ -17,11 +18,13 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
+import ContactShelterButton from "../components/pets/ContactShelterButton";
 import {
   fetchPetById,
   toggleSavedPet,
   fetchReviews,
   submitReview,
+  startConversation,
 } from "../services/api";
 import Button from "../components/common/Button";
 import ApplicationForm from "../components/applications/ApplicationForm";
@@ -49,8 +52,25 @@ const PetDetailsPage = () => {
       try {
         setLoading(true);
         const petData = await fetchPetById(id);
-        setPet(petData);
-        // Check if pet is in user's favorites
+        setPet({
+          ...petData,
+          // Ensure all fields have defaults
+          name: petData.name || "Unknown",
+          breed: petData.breed || "Unknown",
+          gender: petData.gender || "Unknown",
+          size: petData.size || "Not specified",
+          color: petData.color || "Not specified",
+          description:
+            petData.description || "No description available for this pet.",
+          location: petData.location || "Location not available",
+          adoptionFee: petData.adoptionFee || "Varies",
+          status: petData.status || "Unknown",
+          isVaccinated: petData.isVaccinated ?? null,
+          isSpayedNeutered: petData.isSpayedNeutered ?? null,
+          isMicrochipped: petData.isMicrochipped ?? null,
+          images: petData.images || [],
+        });
+
         if (petData.isFavorite) {
           setIsFavorite(true);
         }
@@ -119,8 +139,6 @@ const PetDetailsPage = () => {
         title: reviewTitle,
         content: reviewText,
       };
-
-      console.log("Submitting review:", payload);
 
       await submitReview(payload);
 
@@ -233,18 +251,18 @@ const PetDetailsPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            {pet.name}
-            {pet.adoptionStatus === "available" && (
+            {pet.name || "Pet"}
+            {pet.status?.toLowerCase() === "available" && (
               <span className="ml-3 bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded">
                 Available
               </span>
             )}
-            {pet.adoptionStatus === "pending" && (
+            {pet.status?.toLowerCase() === "pending" && (
               <span className="ml-3 bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded">
                 Pending
               </span>
             )}
-            {pet.adoptionStatus === "adopted" && (
+            {pet.status?.toLowerCase() === "adopted" && (
               <span className="ml-3 bg-purple-100 text-purple-800 text-sm font-medium px-2.5 py-0.5 rounded">
                 Adopted
               </span>
@@ -253,13 +271,17 @@ const PetDetailsPage = () => {
           <div className="flex items-center mt-2 text-gray-600">
             <span className="flex items-center mr-4">
               <MapPin size={16} className="mr-1" />
-              {pet.location
+              {pet.location?.city &&
+              pet.location?.state &&
+              pet.location?.country
                 ? `${pet.location.city}, ${pet.location.state}, ${pet.location.country}`
-                : "Location not available"}
+                : pet.location?.city && pet.location?.state
+                ? `${pet.location.city}, ${pet.location.state}`
+                : pet.location?.city || "Location not available"}
             </span>
             <span className="flex items-center">
               <Calendar size={16} className="mr-1" />
-              {getAgeString(pet.birthdate)}
+              {pet.age?.value} {pet.age?.unit || ""}
             </span>
             <span className="ml-auto flex items-center">
               <button
@@ -289,15 +311,16 @@ const PetDetailsPage = () => {
               <div className="relative">
                 <img
                   src={
-                    pet.photos && pet.photos.length > 0
-                      ? pet.photos[activeImageIndex]?.url
+                    pet.photos?.length > 0
+                      ? pet.photos[activeImageIndex]?.url ||
+                        "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg"
                       : "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg"
                   }
-                  alt={pet.name}
+                  alt={pet.name || "Pet"}
                   className="w-full h-[500px] object-cover"
                 />
 
-                {pet.photos && pet.photos.length > 1 && (
+                {pet.photos?.length > 1 && (
                   <>
                     <button
                       onClick={handlePrevImage}
@@ -317,20 +340,21 @@ const PetDetailsPage = () => {
                 )}
               </div>
 
-              {pet.photos && pet.photos.length > 1 && (
+              {pet.photos?.length > 1 && (
                 <div className="p-4 flex space-x-2 overflow-x-auto">
                   {pet.photos.map((photo, index) => (
                     <button
                       key={photo._id || index}
                       onClick={() => setActiveImageIndex(index)}
-                      className={`
-            h-16 w-16 rounded-md overflow-hidden flex-shrink-0
-            ${activeImageIndex === index ? "ring-2 ring-purple-500" : ""}
-          `}
+                      className={`h-16 w-16 rounded-md overflow-hidden flex-shrink-0 ${
+                        activeImageIndex === index
+                          ? "ring-2 ring-purple-500"
+                          : ""
+                      }`}
                     >
                       <img
                         src={photo.url}
-                        alt={`${pet.name} thumbnail ${index + 1}`}
+                        alt={`${pet.name || "Pet"} thumbnail ${index + 1}`}
                         className="h-full w-full object-cover"
                       />
                     </button>
@@ -342,7 +366,7 @@ const PetDetailsPage = () => {
             {/* Pet Description */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                About {pet.name}
+                About {pet.name || "this pet"}
               </h2>
               <p className="text-gray-700 mb-6 whitespace-pre-line">
                 {pet.description || "No description available for this pet."}
@@ -356,12 +380,14 @@ const PetDetailsPage = () => {
                 </div>
                 <div className="bg-gray-50 p-4 rounded-md">
                   <p className="text-sm text-gray-500">Age</p>
-                  <p className="font-medium">{getAgeString(pet.birthdate)}</p>
+                  <p className="font-medium">
+                    {pet.age?.value} {pet.age?.unit || ""}
+                  </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-md">
                   <p className="text-sm text-gray-500">Gender</p>
                   <p className="font-medium">
-                    {pet.gender === "male" ? "Male" : "Female"}
+                    {pet.gender === "Male" ? "Male" : "Female"}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-md">
@@ -374,27 +400,49 @@ const PetDetailsPage = () => {
                 </div>
                 <div className="bg-gray-50 p-4 rounded-md">
                   <p className="text-sm text-gray-500">Adoption Fee</p>
-                  <p className="font-medium">{`$${
-                    pet.adoptionFee || "Varies"
-                  }`}</p>
+                  <p className="font-medium">
+                    {pet.adoptionFee &&
+                    typeof pet.adoptionFee.amount === "number"
+                      ? pet.adoptionFee.amount === 0
+                        ? "Free"
+                        : `${pet.adoptionFee.currency} $${pet.adoptionFee.amount}`
+                      : "Varies"}
+                  </p>
                 </div>
               </div>
 
-              {/* Good With */}
-              {pet.goodWith && pet.goodWith.length > 0 && (
+              {/* Good With Section */}
+              {pet.behavior && (
                 <div className="mb-6">
                   <h3 className="text-lg font-medium text-gray-800 mb-3">
                     Good with
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {pet.goodWith.map((trait, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
-                      >
-                        {trait}
+                    {pet.behavior.goodWithChildren && (
+                      <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                        Children
                       </span>
-                    ))}
+                    )}
+                    {pet.behavior.goodWithDogs && (
+                      <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                        Dogs
+                      </span>
+                    )}
+                    {pet.behavior.goodWithCats && (
+                      <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                        Cats
+                      </span>
+                    )}
+                    {pet.behavior.housetrained && (
+                      <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                        Housetrained
+                      </span>
+                    )}
+                    {pet.behavior.energyLevel && (
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                        Energy: {pet.behavior.energyLevel}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
@@ -409,12 +457,16 @@ const PetDetailsPage = () => {
                     <div className="flex-shrink-0 pt-1">
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                          pet.vaccinated ? "bg-green-100" : "bg-gray-100"
+                          pet.medical?.vaccinated
+                            ? "bg-green-100"
+                            : "bg-gray-100"
                         }`}
                       >
                         <span
                           className={`text-xs ${
-                            pet.vaccinated ? "text-green-800" : "text-gray-800"
+                            pet.medical?.vaccinated
+                              ? "text-green-800"
+                              : "text-gray-800"
                           }`}
                         >
                           ✓
@@ -424,7 +476,7 @@ const PetDetailsPage = () => {
                     <div className="ml-3">
                       <p className="text-gray-700 font-medium">Vaccinated</p>
                       <p className="text-sm text-gray-500">
-                        {pet.vaccinated
+                        {pet.medical?.vaccinated
                           ? "Up to date on vaccinations"
                           : "Vaccination status unknown"}
                       </p>
@@ -435,12 +487,14 @@ const PetDetailsPage = () => {
                     <div className="flex-shrink-0 pt-1">
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                          pet.spayedNeutered ? "bg-green-100" : "bg-gray-100"
+                          pet.medical?.spayedNeutered
+                            ? "bg-green-100"
+                            : "bg-gray-100"
                         }`}
                       >
                         <span
                           className={`text-xs ${
-                            pet.spayedNeutered
+                            pet.medical?.spayedNeutered
                               ? "text-green-800"
                               : "text-gray-800"
                           }`}
@@ -454,7 +508,7 @@ const PetDetailsPage = () => {
                         Spayed/Neutered
                       </p>
                       <p className="text-sm text-gray-500">
-                        {pet.spayedNeutered ? "Yes" : "No or unknown"}
+                        {pet.medical?.spayedNeutered ? "Yes" : "No or unknown"}
                       </p>
                     </div>
                   </div>
@@ -463,12 +517,14 @@ const PetDetailsPage = () => {
                     <div className="flex-shrink-0 pt-1">
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                          pet.microchipped ? "bg-green-100" : "bg-gray-100"
+                          pet.medical?.microchipped
+                            ? "bg-green-100"
+                            : "bg-gray-100"
                         }`}
                       >
                         <span
                           className={`text-xs ${
-                            pet.microchipped
+                            pet.medical?.microchipped
                               ? "text-green-800"
                               : "text-gray-800"
                           }`}
@@ -480,15 +536,34 @@ const PetDetailsPage = () => {
                     <div className="ml-3">
                       <p className="text-gray-700 font-medium">Microchipped</p>
                       <p className="text-sm text-gray-500">
-                        {pet.microchipped ? "Yes" : "No or unknown"}
+                        {pet.medical?.microchipped ? "Yes" : "No or unknown"}
                       </p>
                     </div>
                   </div>
+
+                  {/* Special Needs */}
+                  {pet.medical?.specialNeeds && (
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 pt-1">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center bg-yellow-100">
+                          <span className="text-xs text-yellow-800">!</span>
+                        </div>
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-gray-700 font-medium">
+                          Special Needs
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          This pet has special care requirements
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Reviews */}
+            {/* Reviews Section */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">Reviews</h2>
@@ -584,14 +659,14 @@ const PetDetailsPage = () => {
                 </div>
               )}
 
-              {reviews.length > 0 ? (
+              {pet.reviews?.length > 0 ? (
                 <div className="space-y-6">
-                  {reviews.map((review, index) => (
+                  {pet.reviews.map((review) => (
                     <div
-                      key={index}
+                      key={review._id}
                       className="border-b border-gray-200 pb-6 last:border-0 last:pb-0"
                     >
-                      <div className="flex items-center mb-2">
+                      <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <Star
@@ -604,20 +679,35 @@ const PetDetailsPage = () => {
                               size={16}
                             />
                           ))}
+                          <span className="ml-2 text-sm text-gray-500">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
-                        <span className="ml-2 text-sm text-gray-500">
-                          {new Date(review.createdAt).toLocaleDateString()}
-                        </span>
+                        {review.isVerifiedAdopter && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Verified Adopter
+                          </span>
+                        )}
                       </div>
-                      <p className="font-medium">{review.title}</p>
+                      <h3 className="font-medium text-lg">{review.title}</h3>
                       <p className="text-gray-700 mt-2">{review.content}</p>
+
+                      {/* Helpful Votes */}
+                      <div className="mt-3 flex items-center">
+                        <button className="text-gray-500 hover:text-gray-700 flex items-center">
+                          <ThumbsUp size={16} className="mr-1" />
+                          <span className="text-sm">
+                            Helpful ({review.helpfulVotes?.count || 0})
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-gray-500 text-center py-6">
                   No reviews yet. Be the first to share your experience with{" "}
-                  {pet.name}!
+                  {pet.name || "this pet"}!
                 </p>
               )}
             </div>
@@ -640,42 +730,53 @@ const PetDetailsPage = () => {
                     {pet.shelter?.name || "Pet Shelter"}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {pet.shelter?.location
-                      ? [
-                          pet.shelter.location.city,
-                          pet.shelter.location.state,
-                          pet.shelter.location.country,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")
-                      : pet.location
-                      ? [
-                          pet.location.city,
-                          pet.location.state,
-                          pet.location.country,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")
-                      : "Location not available"}
+                    {pet.shelter?.address?.city && pet.shelter?.address?.state
+                      ? `${pet.shelter.address.city}, ${pet.shelter.address.state}`
+                      : pet.shelter?.address?.city || "Location not available"}
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-4 mb-6">
-                <Button
-                  variant="primary"
-                  fullWidth
-                  disabled={pet.status?.toLowerCase() !== "available"}
-                  onClick={() => setShowApplicationForm(true)}
-                >
-                  <Clipboard size={18} className="mr-2" />
-                  Start Adoption Process
-                </Button>
+              <div className="space-y-2 mb-6">
+                <div className="relative">
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    disabled={
+                      !pet.status || pet.status.toLowerCase() !== "available"
+                    }
+                    onClick={() => setShowApplicationForm(true)}
+                  >
+                    <Clipboard size={18} className="mr-2" />
+                    Start Adoption Process
+                  </Button>
+                  {pet.status && pet.status.toLowerCase() !== "available" && (
+                    <p className="text-sm text-red-500 mt-1 text-center">
+                      This pet is currently not available for adoption.
+                    </p>
+                  )}
+                  {pet.fosterInfo?.availableForFostering ? (
+                    <Link
+                      to={`/pets/${pet._id}/foster`}
+                      className="block w-full"
+                    >
+                      <Button variant="primary" fullWidth>
+                        <Clipboard size={18} className="mr-2" />
+                        Apply to Foster
+                      </Button>
+                    </Link>
+                  ) : (
+                    <p className="text-sm text-red-500 mt-1 text-center">
+                      This pet is currently not available for fostering.
+                    </p>
+                  )}
+                </div>
 
-                <Button variant="outline" fullWidth>
-                  <MessageCircle size={18} className="mr-2" />
-                  Contact Shelter
-                </Button>
+                <ContactShelterButton
+                  shelterId={pet.shelter?._id}
+                  petId={pet._id}
+                  petName={pet.name}
+                />
               </div>
 
               <div className="bg-purple-50 rounded-md p-4">
@@ -687,15 +788,9 @@ const PetDetailsPage = () => {
                     <p className="text-sm text-gray-700">
                       This pet is currently located at{" "}
                       {pet.shelter?.name || "the shelter"} in{" "}
-                      {pet.location
-                        ? [
-                            pet.location.city,
-                            pet.location.state,
-                            pet.location.country,
-                          ]
-                            .filter(Boolean)
-                            .join(", ")
-                        : "an unknown location"}
+                      {pet.location?.city && pet.location?.state
+                        ? `${pet.location.city}, ${pet.location.state}`
+                        : pet.location?.city || "an unknown location"}
                       . Contact the shelter to schedule a visit.
                     </p>
                   </div>
@@ -753,8 +848,8 @@ const PetDetailsPage = () => {
                   <div className="ml-4">
                     <h3 className="font-medium text-gray-900">Meet & Greet</h3>
                     <p className="mt-1 text-sm text-gray-600">
-                      Schedule a time to meet {pet.name} in person at the
-                      shelter.
+                      Schedule a time to meet {pet.name || "the pet"} in person
+                      at the shelter.
                     </p>
                   </div>
                 </div>
@@ -785,8 +880,8 @@ const PetDetailsPage = () => {
                   <div className="ml-4">
                     <h3 className="font-medium text-gray-900">Welcome Home!</h3>
                     <p className="mt-1 text-sm text-gray-600">
-                      Take {pet.name} to their new forever home and begin your
-                      journey together.
+                      Take {pet.name || "your new pet"} to their new forever
+                      home and begin your journey together.
                     </p>
                   </div>
                 </div>
@@ -794,31 +889,31 @@ const PetDetailsPage = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Application Form Modal */}
-      {showApplicationForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-2xl font-bold">Adoption Application</h2>
-              <button
-                onClick={() => setShowApplicationForm(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6">
-              <ApplicationForm
-                petId={pet._id}
-                petName={pet.name}
-                onSuccess={() => setShowApplicationForm(false)}
-              />
+        {/* Application Form Modal */}
+        {showApplicationForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center p-6 border-b">
+                <h2 className="text-2xl font-bold">Adoption Application</h2>
+                <button
+                  onClick={() => setShowApplicationForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="p-6">
+                <ApplicationForm
+                  petId={pet._id}
+                  petName={pet.name}
+                  onSuccess={() => setShowApplicationForm(false)}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
