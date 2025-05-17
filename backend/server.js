@@ -20,16 +20,23 @@ connectDB();
 
 const app = express();
 
-// Use the frontend URL from .env
-const allowedOrigins = [process.env.FRONTEND_URL];
+// CORS setup to allow Netlify deploy previews + production URL
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  /\.netlify\.app$/  // Allow any subdomain of netlify.app (e.g., deploy previews)
+];
 
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS policy violation: Origin not allowed'), false);
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // Allow server-to-server or same-origin
+    if (
+      allowedOrigins.some((allowed) =>
+        allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+      )
+    ) {
+      return callback(null, true);
     }
-    return callback(null, origin);
+    return callback(new Error('CORS policy violation: Origin not allowed'), false);
   },
   credentials: true,
 }));
@@ -37,7 +44,7 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 
-// Set static folder
+// Static folder for uploads
 app.use(express.static('public'));
 
 // Mount routes
@@ -56,6 +63,7 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
+// Start server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
@@ -65,6 +73,5 @@ app.listen(PORT, () => {
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   console.log(`Error: ${err.message}`);
-  // Close server & exit process
   process.exit(1);
 });
