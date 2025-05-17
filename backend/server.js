@@ -20,23 +20,23 @@ connectDB();
 
 const app = express();
 
-// CORS setup to allow Netlify deploy previews + production URL
+// Explicit list of allowed origins
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  /\.netlify\.app$/  // Allow any subdomain of netlify.app (e.g., deploy previews)
+  'http://localhost:3000',
+  'https://pet-adoption-platform-kp.netlify.app',
+  'https://6828fc941d8a109bf2fc4a2c--pet-adoption-platform-kp.netlify.app'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow server-to-server or same-origin
-    if (
-      allowedOrigins.some((allowed) =>
-        allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
-      )
-    ) {
+    // Allow non-browser requests (like Postman, server-to-server)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
+    } else {
+      return callback(new Error(`CORS policy violation: Origin ${origin} not allowed`), false);
     }
-    return callback(new Error('CORS policy violation: Origin not allowed'), false);
   },
   credentials: true,
 }));
@@ -47,7 +47,7 @@ app.use(express.json());
 // Static folder for uploads
 app.use(express.static('public'));
 
-// Mount routes
+// API routes
 app.use('/api/users', userRoutes);
 app.use('/api/pets', petRoutes);
 app.use('/api/applications', applicationRoutes);
@@ -60,18 +60,17 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Pet Adoption Platform API' });
 });
 
-// Error handling middleware
+// Error handler
 app.use(errorHandler);
 
-// Start server
+// Server start
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`);
+  console.error(`Unhandled Rejection: ${err.message}`);
   process.exit(1);
 });
