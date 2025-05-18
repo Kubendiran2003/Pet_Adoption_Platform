@@ -20,6 +20,7 @@ function EditPetPage() {
     location: { country: "", state: "", city: "" },
     photos: [],
     shelter: "",
+    availableForFostering: false,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,6 +54,7 @@ function EditPetPage() {
           location: response.location || { country: "", state: "", city: "" },
           photos: response.photos || [],
           shelter: response.shelter?._id || response.shelter || "",
+          availableForFostering: response.fosterInfo?.availableForFostering || false,
         });
 
         if (response.photos?.[0]?.url) {
@@ -112,6 +114,8 @@ function EditPetPage() {
           payload.append(key, value);
         }
       });
+
+      payload.append("fosterInfo[availableForFostering]", formData.availableForFostering);
 
       toast.loading("Updating pet...", { id: "update-pet" });
       await updatePet(id, payload);
@@ -320,6 +324,26 @@ function EditPetPage() {
             </div>
           </div>
         </div>
+
+        {/* Available for Fostering */}
+<div className="flex items-center mt-4">
+  <input
+    type="checkbox"
+    name="availableForFostering"
+    checked={formData.availableForFostering}
+    onChange={(e) =>
+      setFormData((prev) => ({
+        ...prev,
+        availableForFostering: e.target.checked,
+      }))
+    }
+    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+  />
+  <label htmlFor="availableForFostering" className="ml-2 block text-sm text-gray-700">
+    Available for Fostering
+  </label>
+</div>
+
 
         {/* Description */}
         <div>

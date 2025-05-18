@@ -20,8 +20,8 @@ const ApplicationsPage = () => {
   const [fosterApplications, setFosterApplications] = useState([]);
   const [loadingAdoption, setLoadingAdoption] = useState(true);
   const [loadingFoster, setLoadingFoster] = useState(true);
-  const [activeMainTab, setActiveMainTab] = useState("adoption"); // "adoption" or "foster"
-  const [activeStatusTab, setActiveStatusTab] = useState("all"); // "all", "pending", "approved", "rejected"
+  const [activeMainTab, setActiveMainTab] = useState("adoption");
+  const [activeStatusTab, setActiveStatusTab] = useState("all");
   const [expandedApplicationId, setExpandedApplicationId] = useState(null);
 
   useEffect(() => {
@@ -57,88 +57,95 @@ const ApplicationsPage = () => {
     setExpandedApplicationId(expandedApplicationId === id ? null : id);
   };
 
-  // Filter applications based on selected status tab
   const filteredApplications = (
     activeMainTab === "adoption" ? adoptionApplications : fosterApplications
-  ).filter(
-    (app) =>
-      activeStatusTab === "all" ||
-      app.status?.toLowerCase().trim() === activeStatusTab
-  );
+  ).filter((app) => {
+    const status = app.status?.toLowerCase().trim();
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "approved":
-        return <CheckCircle size={20} className="text-green-500" />;
-      case "rejected":
-        return <XCircle size={20} className="text-red-500" />;
-      case "pending":
-      default:
-        return <Clock size={20} className="text-yellow-500" />;
+    if (activeStatusTab === "all") return true;
+
+    if (activeStatusTab === "rejected") {
+      return status === "rejected" || status === "denied";
     }
-  };
+
+    if (activeStatusTab === "pending") {
+      return (
+        status === "pending" ||
+        status === "submitted" ||
+        status === "under review"
+      );
+    }
+
+    return status === activeStatusTab;
+  });
 
   const getStatusClass = (status) => {
-    switch (status) {
+    const normalized = status?.toLowerCase().trim();
+    if (
+      normalized === "pending" ||
+      normalized === "submitted" ||
+      normalized === "under review"
+    ) {
+      return "bg-yellow-100 text-yellow-800";
+    }
+    switch (normalized) {
       case "approved":
         return "bg-green-100 text-green-800";
       case "rejected":
+      case "denied":
         return "bg-red-100 text-red-800";
-      case "pending":
       default:
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    const normalized = status?.toLowerCase().trim();
+    if (
+      normalized === "pending" ||
+      normalized === "submitted" ||
+      normalized === "under review"
+    ) {
+      return <Clock size={20} className="text-yellow-500" />;
+    }
+    switch (normalized) {
+      case "approved":
+        return <CheckCircle size={20} className="text-green-500" />;
+      case "rejected":
+      case "denied":
+        return <XCircle size={20} className="text-red-500" />;
+      default:
+        return <Clock size={20} className="text-gray-500" />;
     }
   };
 
   const ApplicationCard = ({ application }) => (
-    <div
-      key={application._id}
-      className="bg-white rounded-lg shadow-md overflow-hidden mb-6"
-    >
-      <div
-        className="p-6 cursor-pointer hover:bg-gray-50"
-        onClick={() => toggleApplicationDetails(application._id)}
-      >
+    <div key={application._id} className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+      <div className="p-6 cursor-pointer hover:bg-gray-50" onClick={() => toggleApplicationDetails(application._id)}>
         <div className="flex flex-col md:flex-row md:justify-between md:items-center">
           <div className="flex items-center mb-4 md:mb-0">
             <img
-              src={
-                application.pet?.photos?.[0]?.url ||
-                "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg"
-              }
+              src={application.pet?.photos?.[0]?.url || "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg"}
               alt={application.pet?.name}
               className="h-12 w-12 rounded-full object-cover mr-4"
             />
             <div>
               <h3 className="text-lg font-medium text-gray-900">
-                {activeMainTab === "adoption"
-                  ? `Application for ${application.pet?.name || "Pet"}`
-                  : `Foster Application for ${application.pet?.name || "Pet"}`}
+                {activeMainTab === "adoption" ? `Application for ${application.pet?.name || "Pet"}` : `Foster Application for ${application.pet?.name || "Pet"}`}
               </h3>
               <p className="text-sm text-gray-500">
-                Submitted on{" "}
-                {application.createdAt
-                  ? new Date(application.createdAt).toLocaleDateString()
-                  : "Unknown date"}
+                Submitted on {application.createdAt ? new Date(application.createdAt).toLocaleDateString() : "Unknown date"}
               </p>
             </div>
           </div>
           <div className="flex items-center">
-            <span
-              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusClass(
-                application.status
-              )}`}
-            >
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusClass(application.status)}`}>
               {getStatusIcon(application.status)}
               <span className="ml-1 capitalize">{application.status}</span>
             </span>
             <ChevronDown
               size={20}
-              className={`ml-2 text-gray-500 transition-transform ${
-                expandedApplicationId === application._id
-                  ? "transform rotate-180"
-                  : ""
-              }`}
+              className={`ml-2 text-gray-500 transition-transform ${expandedApplicationId === application._id ? "transform rotate-180" : ""}`}
             />
           </div>
         </div>
@@ -148,33 +155,21 @@ const ApplicationsPage = () => {
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-medium text-gray-700 mb-2">
-                Pet Information
-              </h4>
+              <h4 className="font-medium text-gray-700 mb-2">Pet Information</h4>
               <div className="bg-white p-4 rounded-md">
                 <div className="flex items-center mb-4">
                   <img
-                    src={
-                      application.pet?.photos?.[0]?.url ||
-                      "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg"
-                    }
+                    src={application.pet?.photos?.[0]?.url || "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg"}
                     alt={application.pet?.name}
                     className="h-16 w-16 rounded-md object-cover mr-4"
                   />
                   <div>
-                    <h5 className="font-medium">
-                      {application.pet?.name || "Pet"}
-                    </h5>
+                    <h5 className="font-medium">{application.pet?.name || "Pet"}</h5>
                     <p className="text-sm text-gray-500">
                       {application.pet?.breed || "Unknown breed"},{" "}
-                      {application.pet?.age
-                        ? `${application.pet.age.value} ${application.pet.age.unit}`
-                        : "Unknown age"}
+                      {application.pet?.age ? `${application.pet.age.value} ${application.pet.age.unit}` : "Unknown age"}
                     </p>
-                    <Link
-                      to={`/pets/${application.pet?._id}`}
-                      className="text-sm text-purple-600 hover:text-purple-700 font-medium"
-                    >
+                    <Link to={`/pets/${application.pet?._id}`} className="text-sm text-purple-600 hover:text-purple-700 font-medium">
                       View Pet Details
                     </Link>
                   </div>
@@ -183,50 +178,44 @@ const ApplicationsPage = () => {
             </div>
 
             <div>
-              <h4 className="font-medium text-gray-700 mb-2">
-                Application Details
-              </h4>
+              <h4 className="font-medium text-gray-700 mb-2">Application Details</h4>
               <div className="bg-white p-4 rounded-md space-y-3">
                 <div>
                   <p className="text-sm text-gray-500">Housing</p>
-                  <p className="font-medium capitalize">
-                    {application.housing || "Not specified"}
-                  </p>
+                  <p className="font-medium capitalize">{application.housingInfo?.type || "Not specified"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Has Children</p>
-                  <p className="font-medium">
-                    {application.hasChildren === "yes" ? "Yes" : "No"}
-                  </p>
+                  <p className="font-medium">{application.housingInfo?.hasChildren ? "Yes" : "No"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Has Other Pets</p>
-                  <p className="font-medium">
-                    {application.hasOtherPets === "yes" ? "Yes" : "No"}
-                  </p>
+                  <p className="font-medium">{application.housingInfo?.hasOtherPets ? "Yes" : "No"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Work Schedule</p>
                   <p className="font-medium capitalize">
-                    {application.workSchedule || "Not specified"}
+                    {application.lifestyle?.activityLevel || "Not specified"}
                   </p>
                 </div>
 
                 {activeMainTab === "foster" && (
                   <>
                     <div>
-                      <p className="text-sm text-gray-500">Foster Duration</p>
+                      <p className="text-sm text-gray-500">Start Date</p>
                       <p className="font-medium">
-                        {application.fosterDuration || "Not specified"}
+                        {application.startDate ? new Date(application.startDate).toLocaleDateString() : "Not specified"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">
-                        Experience with Pets
-                      </p>
+                      <p className="text-sm text-gray-500">End Date</p>
                       <p className="font-medium">
-                        {application.experience || "Not specified"}
+                        {application.endDate ? new Date(application.endDate).toLocaleDateString() : "Not specified"}
                       </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Notes</p>
+                      <p className="font-medium">{application.notes || "No notes provided"}</p>
                     </div>
                   </>
                 )}
@@ -234,54 +223,43 @@ const ApplicationsPage = () => {
             </div>
           </div>
 
-          {application.status === "pending" && (
+          {/* Status Message */}
+          {["pending", "submitted", "under review"].includes(application.status?.toLowerCase()) && (
             <div className="bg-yellow-50 border border-yellow-100 rounded-md p-4 mt-6">
               <div className="flex">
                 <Clock size={20} className="text-yellow-600 flex-shrink-0" />
                 <div className="ml-3">
-                  <h5 className="text-yellow-800 font-medium">
-                    Application Under Review
-                  </h5>
+                  <h5 className="text-yellow-800 font-medium">Application Under Review</h5>
                   <p className="text-yellow-700 text-sm">
-                    Your application is being reviewed by the shelter. You
-                    should receive a response within 2-3 business days.
+                    Your application is being reviewed by the shelter. You should receive a response within 2–3 business days.
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {application.status === "approved" && (
+          {application.status?.toLowerCase() === "approved" && (
             <div className="bg-green-50 border border-green-100 rounded-md p-4 mt-6">
               <div className="flex">
-                <CheckCircle
-                  size={20}
-                  className="text-green-600 flex-shrink-0"
-                />
+                <CheckCircle size={20} className="text-green-600 flex-shrink-0" />
                 <div className="ml-3">
-                  <h5 className="text-green-800 font-medium">
-                    Application Approved!
-                  </h5>
+                  <h5 className="text-green-800 font-medium">Application Approved!</h5>
                   <p className="text-green-700 text-sm">
-                    Congratulations! The shelter has approved your application.
-                    They will contact you soon to schedule a meet and greet.
+                    Congratulations! The shelter has approved your application. They will contact you soon to schedule a meet and greet.
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {application.status === "rejected" && (
+          {["rejected", "denied"].includes(application.status?.toLowerCase()) && (
             <div className="bg-red-50 border border-red-100 rounded-md p-4 mt-6">
               <div className="flex">
                 <XCircle size={20} className="text-red-600 flex-shrink-0" />
                 <div className="ml-3">
-                  <h5 className="text-red-800 font-medium">
-                    Application Not Approved
-                  </h5>
+                  <h5 className="text-red-800 font-medium">Application Not Approved</h5>
                   <p className="text-red-700 text-sm">
-                    We're sorry, your application was not approved at this time.
-                    Please contact the shelter for more information.
+                    We're sorry, your application was not approved. Please contact the shelter for more details.
                   </p>
                 </div>
               </div>
@@ -289,12 +267,8 @@ const ApplicationsPage = () => {
           )}
 
           <div className="mt-6 flex justify-between">
-            <Button to={`/pets/${application.pet?._id}`} variant="outline">
-              View Pet
-            </Button>
-            <Button variant="primary" icon={<MessageCircle size={18} />}>
-              Contact Shelter
-            </Button>
+            <Button to={`/pets/${application.pet?._id}`} variant="outline">View Pet</Button>
+            <Button to="/messages" variant="primary" icon={<MessageCircle size={18} />}>Contact Shelter</Button>
           </div>
         </div>
       )}
@@ -305,12 +279,8 @@ const ApplicationsPage = () => {
     <div className="bg-gray-50 min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            My Applications
-          </h1>
-          <p className="text-lg text-gray-600">
-            Track and manage your pet adoption and foster applications
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Applications</h1>
+          <p className="text-lg text-gray-600">Track and manage your pet adoption and foster applications</p>
         </div>
 
         {/* Main Tabs */}
@@ -322,11 +292,7 @@ const ApplicationsPage = () => {
                 setActiveStatusTab("all");
                 setExpandedApplicationId(null);
               }}
-              className={`pb-4 px-1 ${
-                activeMainTab === "adoption"
-                  ? "border-b-2 border-purple-500 text-purple-600 font-medium"
-                  : "text-gray-500 hover:text-gray-700 border-transparent"
-              }`}
+              className={`pb-4 px-1 ${activeMainTab === "adoption" ? "border-b-2 border-purple-500 text-purple-600 font-medium" : "text-gray-500 hover:text-gray-700 border-transparent"}`}
             >
               Adoption Applications
             </button>
@@ -336,11 +302,7 @@ const ApplicationsPage = () => {
                 setActiveStatusTab("all");
                 setExpandedApplicationId(null);
               }}
-              className={`pb-4 px-1 ${
-                activeMainTab === "foster"
-                  ? "border-b-2 border-purple-500 text-purple-600 font-medium"
-                  : "text-gray-500 hover:text-gray-700 border-transparent"
-              }`}
+              className={`pb-4 px-1 ${activeMainTab === "foster" ? "border-b-2 border-purple-500 text-purple-600 font-medium" : "text-gray-500 hover:text-gray-700 border-transparent"}`}
             >
               Foster Applications
             </button>
@@ -368,6 +330,7 @@ const ApplicationsPage = () => {
             ))}
           </div>
         </div>
+
 
         {/* Application List */}
         {loadingAdoption || loadingFoster ? (

@@ -19,20 +19,26 @@ function AddPetPage() {
     location: { country: "", state: "", city: "" },
     photos: [],
     shelter: loggedInShelterId,
+    image: null,
+    availableForFostering: false,
   });
 
   const [preview, setPreview] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
+    const { name, value, files, type, checked } = e.target;
 
-    if (name === "image") {
+    if (type === "checkbox") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: checked,
+      }));
+    } else if (name === "image") {
       const file = files[0];
       setFormData((prev) => ({
         ...prev,
         image: file,
       }));
-
       if (file) setPreview(URL.createObjectURL(file));
       else setPreview(null);
     } else if (name.startsWith("location.")) {
@@ -78,6 +84,7 @@ function AddPetPage() {
     payload.append("age.value", formData.age.value);
     payload.append("age.unit", formData.age.unit);
     payload.append("shelter", formData.shelter);
+    payload.append("fosterInfo[availableForFostering]", formData.availableForFostering);
 
     if (formData.image) {
       payload.append("image", formData.image);
@@ -99,6 +106,7 @@ function AddPetPage() {
         photos: [],
         shelter: loggedInShelterId,
         image: null,
+        availableForFostering: false,
       });
       setPreview(null);
       navigate("/shelter-dashboard", {
@@ -250,6 +258,20 @@ function AddPetPage() {
           required
           className="input w-full p-2 border rounded"
         />
+
+        {/* Available for Fostering Checkbox */}
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            name="availableForFostering"
+            checked={formData.availableForFostering}
+            onChange={handleChange}
+            className="w-4 h-4"
+          />
+          <label htmlFor="availableForFostering" className="text-sm">
+            Available for Fostering
+          </label>
+        </div>
 
         <input
           type="file"
