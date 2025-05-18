@@ -22,7 +22,7 @@ const app = express();
 
 // Explicit list of allowed origins
 const allowedOrigins = [
-  'http://localhost:3000',
+  'http://localhost:5173',
   'https://pet-adoption-platform-kp.netlify.app',
   'https://6828fc941d8a109bf2fc4a2c--pet-adoption-platform-kp.netlify.app'
 ];
